@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Watch - Campus WiFi Watch System</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #0b0c10;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    /* Page context title */
+    .prototype-bar {
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .prototype-title {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      font-weight: 600;
+    }
+    .prototype-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* Watch Outer Hardware Case (Aerospace Aluminum) */
+    .watch-case {
+      position: relative;
+      background: linear-gradient(145deg, #2a2e35, #14171c 45%, #0f1216);
+      border-radius: 38px;
+      padding: 10px;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.8);
+      display: inline-block;
+    }
+
+    /* Hardware Digital Crown on Right */
+    .watch-crown {
+      position: absolute;
+      right: -8px;
+      top: 45px;
+      width: 8px;
+      height: 38px;
+      background: linear-gradient(90deg, #374151, #6b7280, #1f2937);
+      border-radius: 0 4px 4px 0;
+      box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    /* Side Button */
+    .watch-side-btn {
+      position: absolute;
+      right: -5px;
+      top: 100px;
+      width: 5px;
+      height: 30px;
+      background: #374151;
+      border-radius: 0 3px 3px 0;
+    }
+    /* Left Mic Hole */
+    .watch-mic-hole {
+      position: absolute;
+      left: 3px;
+      top: 80px;
+      width: 3px;
+      height: 3px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    /* Strap simulation lugs */
+    .strap-top, .strap-bottom {
+      width: 120px;
+      height: 18px;
+      background: #18191d;
+      margin: 0 auto;
+      border-radius: 6px;
+      opacity: 0.7;
+    }
+    .strap-top { margin-bottom: -6px; }
+    .strap-bottom { margin-top: -6px; }
+
+    /* Active Watch Screen - Compact 210 x 270 px */
+    .watch-screen {
+      width: 210px;
+      height: 270px;
+      background: #000000;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 9px 10px;
+      box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 11px;
+    }
+
+    /* Curved Glass Glare Sheen */
+    .screen-glare {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 38px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Watch Top Status Bar */
+    .watch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+      color: #a3a3a3;
+      font-size: 9px;
+      line-height: 1.1;
+    }
+    .watch-time {
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .watch-status-right {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .watch-wifi {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 8px;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .wifi-dot {
+      width: 4.5px;
+      height: 4.5px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #ffffff;
+    }
+
+    /* Top-Right Visual Battery Level Icon */
+    .watch-battery {
+      display: flex;
+      align-items: center;
+      gap: 2.5px;
+      cursor: pointer;
+      user-select: none;
+      padding: 1px 2px;
+      border-radius: 3px;
+      transition: background 0.15s ease;
+    }
+    .watch-battery:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .battery-pct {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #d4d4d4;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s ease;
+    }
+    .battery-shell {
+      position: relative;
+      width: 14px;
+      height: 7.5px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 2px;
+      padding: 0.5px;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+    }
+    .battery-tip {
+      position: absolute;
+      right: -2.5px;
+      top: 1.5px;
+      width: 1.5px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 0 1px 1px 0;
+    }
+    .battery-fill {
+      height: 100%;
+      border-radius: 1px;
+      background-color: #ffffff;
+      box-shadow: 0 0 4px #ffffff;
+      transition: width 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .battery-fill.pulsing {
+      animation: battery-warn 1s infinite alternate;
+    }
+    @keyframes battery-warn {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* Title & Role */
+    .watch-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid #262626;
+      padding-bottom: 3px;
+      margin-bottom: 5px;
+    }
+    .watch-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+    }
+    .watch-role {
+      font-size: 8.5px;
+      color: #d4d4d4;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Content Area (Scrollable within 270px height) */
+    .watch-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      overflow-y: auto;
+      padding-right: 1px;
+    }
+    .watch-body::-webkit-scrollbar {
+      width: 2px;
+    }
+    .watch-body::-webkit-scrollbar-thumb {
+      background: #525252;
+      border-radius: 2px;
+    }
+
+    /* Input Area */
+    .input-group {
+      position: relative;
+    }
+    .msg-textarea {
+      width: 100%;
+      height: 48px;
+      background: #0f0f0f;
+      border: 1px solid #333333;
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 10px;
+      padding: 5px 6px;
+      resize: none;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .msg-textarea:focus {
+      border-color: #ffffff;
+    }
+    .msg-textarea::placeholder {
+      color: #737373;
+      font-size: 9.5px;
+    }
+
+    /* Action Buttons Row */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 4px;
+    }
+    .btn {
+      height: 26px;
+      border: none;
+      border-radius: 7px;
+      font-size: 9.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: all 0.12s ease;
+      user-select: none;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-mic {
+      background: #1a1a1a;
+      color: #ffffff;
+      border: 1px solid #404040;
+    }
+    .btn-mic.recording {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ffffff;
+      font-weight: 700;
+      animation: pulse-mono 1.2s infinite;
+    }
+    @keyframes pulse-mono {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0); }
+    }
+    .btn-send {
+      background: #ffffff;
+      color: #000000;
+      font-weight: 700;
+    }
+    .btn-send:hover {
+      background: #e5e5e5;
+    }
+
+    /* Status Banner */
+    .status-msg {
+      font-size: 8.5px;
+      text-align: center;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+      min-height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .status-msg.success {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .status-msg.error {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px dashed rgba(255, 255, 255, 0.3);
+    }
+    .status-msg.info {
+      color: #d4d4d4;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Preset Quick Buttons */
+    .presets-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #737373;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+    .preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 4px;
+    }
+    .preset-btn {
+      width: 100%;
+      text-align: left;
+      background: #141414;
+      border: 1px solid #262626;
+      border-radius: 5px;
+      color: #e5e5e5;
+      font-size: 8.5px;
+      padding: 4px 6px;
+      cursor: pointer;
+      line-height: 1.2;
+      transition: background 0.12s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preset-btn:hover {
+      background: #262626;
+      color: #ffffff;
+      border-color: #ffffff;
+    }
+
+    /* Watch Footer */
+    .watch-footer {
+      font-size: 8px;
+      color: #737373;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #262626;
+      padding-top: 3px;
+      margin-top: auto;
+    }
+
+    /* Server URL Config Bar (Below Watch for convenience) */
+    .config-card {
+      margin-top: 18px;
+      width: 290px;
+      background: #11141a;
+      border: 1px solid #1f242f;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11px;
+    }
+    .config-title {
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .config-input-group {
+      display: flex;
+      gap: 6px;
+    }
+    .config-input {
+      flex: 1;
+      background: #0b0c10;
+      border: 1px solid #2d3545;
+      color: #93c5fd;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-family: monospace;
+      outline: none;
+    }
+    .config-btn {
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #f3f4f6;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    .config-hint {
+      margin-top: 5px;
+      font-size: 9.5px;
+      color: #6b7280;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="prototype-bar">
+    <div class="prototype-title">Campus WiFi Watch System</div>
+    <div class="prototype-subtitle">Administrator Wristband Unit Prototype</div>
+  </div>
+
+  <div class="strap-top"></div>
+
+  <!-- Physical Watch Housing -->
+  <div class="watch-case">
+    <div class="watch-crown"></div>
+    <div class="watch-side-btn"></div>
+    <div class="watch-mic-hole" title="Microphone pinhole"></div>
+
+    <!-- Active Display Area (210 x 270 px) -->
+    <div class="watch-screen">
+      <div class="screen-glare"></div>
+
+      <!-- Top Bar: Clock, Date, Wi-Fi Indicator, Visual Battery Level Icon -->
+      <div class="watch-header">
+        <span class="watch-time" id="watchTime">--:-- --</span>
+        <div class="watch-status-right">
+          <div class="watch-wifi">
+            <span class="wifi-dot"></span>
+            <span>Wi-Fi</span>
+          </div>
+          <!-- Battery Level Icon (Top-Right) -->
+          <div class="watch-battery" id="watchBattery" title="Simulated Battery: Click to cycle charge level">
+            <span class="battery-pct" id="batteryPct">92%</span>
+            <div class="battery-shell">
+              <div class="battery-fill" id="batteryFill" style="width: 92%;"></div>
+              <div class="battery-tip"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Title & Role -->
+      <div class="watch-title-row">
+        <span class="watch-title">Campus Watch</span>
+        <span class="watch-role">Administrator</span>
+      </div>
+
+      <!-- Scrollable Controls -->
+      <div class="watch-body">
+        
+        <!-- Message Input -->
+        <div class="input-group">
+          <textarea 
+            id="messageInput" 
+            class="msg-textarea" 
+            placeholder="Type or speak alert..."
+            maxlength="200"
+          ></textarea>
+        </div>
+
+        <!-- Controls: MIC + SEND -->
+        <div class="action-row">
+          <button id="micBtn" class="btn btn-mic" type="button" title="Speak message (Speech Recognition)">
+            <span id="micIcon">🎙</span>
+            <span id="micLabel">MIC</span>
+          </button>
+          <button id="sendBtn" class="btn btn-send" type="button">
+            <span>➤</span>
+            <span>SEND</span>
+          </button>
+        </div>
+
+        <!-- Status Message Banner -->
+        <div id="statusBanner" class="status-msg info">Ready</div>
+
+        <!-- Quick Presets -->
+        <div class="presets-label">Preset Alerts</div>
+        <div class="preset-list">
+          <button class="preset-btn" type="button" onclick="setPreset('Class has started')">Class has started</button>
+          <button class="preset-btn" type="button" onclick="setPreset('Exam starts at 10 AM')">Exam starts at 10 AM</button>
+          <button class="preset-btn" type="button" onclick="setPreset('College event starting now')">College event starting now</button>
+          <button class="preset-btn" type="button" onclick="setPreset('Emergency alert. Please contact the HLC')">Emergency alert. Please contact the HLC</button>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="watch-footer">
+        <span id="watchDate">-- --- ----</span>
+        <span id="serverIndicator">LAN: 8000</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="strap-bottom"></div>
+
+  <!-- Server Network Settings -->
+  <div class="config-card">
+    <div class="config-title">
+      <span>Wi-Fi Server Target</span>
+      <span style="font-size: 9px; color: #10b981;">● Online</span>
+    </div>
+    <div class="config-input-group">
+      <input type="text" id="serverUrlInput" class="config-input" value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000">
+      <button class="config-btn" id="updateUrlBtn" type="button">Set</button>
+    </div>
+    <div class="config-hint">
+      Default is <code>http://127.0.0.1:8000</code>. On a shared LAN, replace with your laptop's Wi-Fi IP (e.g., <code>http://192.168.x.x:8000</code>).
+    </div>
+
+    <!-- Battery Simulation Controls -->
+    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #262626;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: 600; color: #ffffff;">Battery Simulation</span>
+        <span id="simBatteryLabel" style="font-size: 10px; font-weight: bold; color: #ffffff;">92% (High)</span>
+      </div>
+      <div style="display: flex; gap: 4px; align-items: center;">
+        <button class="config-btn" style="flex: 1;" onclick="setBatteryLevel(100)">100%</button>
+        <button class="config-btn" style="flex: 1;" onclick="setBatteryLevel(60)">60%</button>
+        <button class="config-btn" style="flex: 1;" onclick="setBatteryLevel(30)">30%</button>
+        <button class="config-btn" style="flex: 1;" onclick="setBatteryLevel(9)">9% Low</button>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 9.5px; color: #737373;">
+        <span>Click watch battery icon to cycle</span>
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; color: #d4d4d4;">
+          <input type="checkbox" id="autoDrainToggle" checked style="accent-color: #ffffff;"> Auto drain
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // Configuration & Network URL
+    // -------------------------------------------------------------
+    // Default server URL. If hosted on the same origin (e.g. Node dev server or FastAPI static),
+    // automatically fallback to window.location.origin.
+    let SERVER_URL = window.location.port === "8000" ? window.location.origin : "http://127.0.0.1:8000";
+
+    const serverUrlInput = document.getElementById("serverUrlInput");
+    const updateUrlBtn = document.getElementById("updateUrlBtn");
+    const serverIndicator = document.getElementById("serverIndicator");
+
+    if (window.location.protocol.startsWith("http")) {
+      // If we are served from port 3000 or 8000, initialize nicely
+      if (window.location.port === "3000") {
+        SERVER_URL = window.location.origin;
+        serverUrlInput.value = SERVER_URL;
+      }
+    }
+
+    updateUrlBtn.addEventListener("click", () => {
+      let val = serverUrlInput.value.trim();
+      if (!val) return;
+      if (!val.startsWith("http://") && !val.startsWith("https://")) {
+        val = "http://" + val;
+      }
+      SERVER_URL = val;
+      serverUrlInput.value = SERVER_URL;
+      showStatus("Server URL set: " + SERVER_URL.replace(/https?:\/\//, ''), "info");
+    });
+
+    // -------------------------------------------------------------
+    // Live Clock & Date Display
+    // -------------------------------------------------------------
+    function updateClock() {
+      const now = new Date();
+      // Time formatted like 10:45 AM
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 becomes 12
+      const timeStr = `${hours}:${minutes} ${ampm}`;
+      document.getElementById('watchTime').textContent = timeStr;
+
+      // Date formatted like 04 Oct 2026
+      const day = String(now.getDate()).padStart(2, '0');
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthStr = months[now.getMonth()];
+      const year = now.getFullYear();
+      document.getElementById('watchDate').textContent = `${day} ${monthStr} ${year}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // -------------------------------------------------------------
+    // Simulated Battery Level (Monochrome / Black & White)
+    // -------------------------------------------------------------
+    let batteryLevel = 92;
+    const batteryPctEl = document.getElementById("batteryPct");
+    const batteryFillEl = document.getElementById("batteryFill");
+    const simBatteryLabel = document.getElementById("simBatteryLabel");
+    const watchBatteryEl = document.getElementById("watchBattery");
+    const autoDrainToggle = document.getElementById("autoDrainToggle");
+
+    function updateBatteryDisplay(pct) {
+      batteryLevel = Math.max(0, Math.min(100, pct));
+      batteryPctEl.textContent = `${batteryLevel}%`;
+      batteryFillEl.style.width = `${batteryLevel}%`;
+
+      // Monochrome color mapping:
+      // High (75-100%): Pure white (#ffffff)
+      // Medium (40-74%): Light silver (#d4d4d4)
+      // Low (18-39%): Medium gray (#a3a3a3)
+      // Critical (0-17%): Darker silver with pulse (#737373)
+      let color = "#ffffff";
+      let statusText = "High";
+
+      if (batteryLevel >= 75) {
+        color = "#ffffff";
+        statusText = "High";
+        batteryFillEl.classList.remove("pulsing");
+      } else if (batteryLevel >= 40) {
+        color = "#d4d4d4";
+        statusText = "Medium";
+        batteryFillEl.classList.remove("pulsing");
+      } else if (batteryLevel >= 18) {
+        color = "#a3a3a3";
+        statusText = "Low";
+        batteryFillEl.classList.remove("pulsing");
+      } else {
+        color = "#737373";
+        statusText = "Critical";
+        batteryFillEl.classList.add("pulsing");
+      }
+
+      batteryFillEl.style.backgroundColor = color;
+      batteryFillEl.style.boxShadow = `0 0 5px ${color}`;
+      batteryPctEl.style.color = color;
+
+      if (simBatteryLabel) {
+        simBatteryLabel.textContent = `${batteryLevel}% (${statusText})`;
+        simBatteryLabel.style.color = color;
+      }
+    }
+
+    function setBatteryLevel(pct) {
+      updateBatteryDisplay(pct);
+      showStatus(`Battery: ${pct}%`, "info", 1500);
+    }
+
+    // Click on watch face battery icon to cycle levels
+    const batteryCycleValues = [100, 75, 55, 30, 14, 5];
+    let batteryCycleIdx = 0;
+    watchBatteryEl.addEventListener("click", () => {
+      batteryCycleIdx = (batteryCycleIdx + 1) % batteryCycleValues.length;
+      updateBatteryDisplay(batteryCycleValues[batteryCycleIdx]);
+      showStatus(`Battery: ${batteryCycleValues[batteryCycleIdx]}%`, "info", 1500);
+    });
+
+    // Simulated battery drain every 10 seconds
+    setInterval(() => {
+      if (autoDrainToggle && autoDrainToggle.checked) {
+        let next = batteryLevel - 1;
+        if (next < 5) next = 100;
+        updateBatteryDisplay(next);
+      }
+    }, 10000);
+
+    // Initial setup
+    updateBatteryDisplay(batteryLevel);
+
+    // -------------------------------------------------------------
+    // Preset Messages
+    // -------------------------------------------------------------
+    function setPreset(text) {
+      const textarea = document.getElementById("messageInput");
+      textarea.value = text;
+      textarea.focus();
+      showStatus("Preset selected", "info");
+    }
+
+    // -------------------------------------------------------------
+    // Status Banner Helpers
+    // -------------------------------------------------------------
+    const statusBanner = document.getElementById("statusBanner");
+    let statusTimer = null;
+
+    function showStatus(text, type = "info", autoResetMs = 3000) {
+      if (statusTimer) clearTimeout(statusTimer);
+      statusBanner.textContent = text;
+      statusBanner.className = `status-msg ${type}`;
+      if (autoResetMs) {
+        statusTimer = setTimeout(() => {
+          statusBanner.textContent = "Ready";
+          statusBanner.className = "status-msg info";
+        }, autoResetMs);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Voice Input: Web Speech Recognition API (en-IN)
+    // -------------------------------------------------------------
+    const micBtn = document.getElementById("micBtn");
+    const micLabel = document.getElementById("micLabel");
+    const messageInput = document.getElementById("messageInput");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-IN"; // Prompt specifies en-IN
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.classList.add("recording");
+        micLabel.textContent = "STOP";
+        showStatus("🎙 Listening...", "info", 0);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          messageInput.value = transcript;
+          showStatus("Voice transcribed. Press SEND.", "info", 3500);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        isRecording = false;
+        micBtn.classList.remove("recording");
+        micLabel.textContent = "MIC";
+        if (event.error === "not-allowed") {
+          showStatus("Microphone permission denied", "error", 4000);
+        } else if (event.error === "no-speech") {
+          showStatus("No speech detected", "info", 3000);
+        } else {
+          showStatus("Mic error: " + event.error, "error", 3500);
+        }
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        micBtn.classList.remove("recording");
+        micLabel.textContent = "MIC";
+        if (statusBanner.textContent === "🎙 Listening...") {
+          showStatus("Ready", "info");
+        }
+      };
+    }
+
+    micBtn.addEventListener("click", () => {
+      if (!SpeechRecognition) {
+        showStatus("Speech recognition not supported in this browser", "error", 4000);
+        return;
+      }
+
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        try {
+          recognition.start();
+        } catch (err) {
+          showStatus("Could not start microphone", "error", 3000);
+        }
+      }
+    });
+
+    // -------------------------------------------------------------
+    // Send Message: POST /admin-message
+    // -------------------------------------------------------------
+    const sendBtn = document.getElementById("sendBtn");
+
+    sendBtn.addEventListener("click", async () => {
+      const msg = messageInput.value.trim();
+      if (!msg) {
+        showStatus("Please enter a message", "error", 2500);
+        messageInput.focus();
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = "0.7";
+      showStatus("Sending alert...", "info", 0);
+
+      try {
+        const targetEndpoint = `${SERVER_URL}/admin-message`;
+        const response = await fetch(targetEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: msg })
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP error " + response.status);
+        }
+
+        const data = await response.json();
+        // Requirements: Admin should display "✓ Alert sent" when successful
+        showStatus("✓ Alert sent", "success", 4000);
+      } catch (err) {
+        console.error("Failed to send message:", err);
+        // Requirements: Display "✕ Server error" when sending fails
+        showStatus("✕ Server error", "error", 4000);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+      }
+    });
+  </script>
+</body>
+</html>

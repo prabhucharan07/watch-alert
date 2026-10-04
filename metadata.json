@@ -1,0 +1,6 @@
+{
+  "name": "Campus WiFi Watch System",
+  "description": "Virtual smartwatch emergency communication system for college campus, linking Administrator and Student wrist devices over Wi-Fi LAN with voice input and Web Audio haptic alerts.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

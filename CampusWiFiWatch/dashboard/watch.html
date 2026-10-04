@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Watch - Campus WiFi Watch System</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #0b0c10;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    /* Page context title */
+    .prototype-bar {
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .prototype-title {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      font-weight: 600;
+    }
+    .prototype-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* Watch Outer Hardware Case */
+    .watch-case {
+      position: relative;
+      background: linear-gradient(145deg, #2a2e35, #14171c 45%, #0f1216);
+      border-radius: 38px;
+      padding: 10px;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.8);
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+
+    /* Vibration shake effect */
+    .watch-case.vibrating {
+      animation: watch-vibe 0.35s ease infinite;
+    }
+    @keyframes watch-vibe {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      20% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+      40% { transform: translate(2px, -1px) rotate(0.5deg); }
+      60% { transform: translate(-1px, -2px) rotate(0deg); }
+      80% { transform: translate(2px, 2px) rotate(0.5deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    /* Hardware Crown on Right */
+    .watch-crown {
+      position: absolute;
+      right: -8px;
+      top: 45px;
+      width: 8px;
+      height: 38px;
+      background: linear-gradient(90deg, #374151, #6b7280, #1f2937);
+      border-radius: 0 4px 4px 0;
+      box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    /* Side Button */
+    .watch-side-btn {
+      position: absolute;
+      right: -5px;
+      top: 100px;
+      width: 5px;
+      height: 30px;
+      background: #374151;
+      border-radius: 0 3px 3px 0;
+    }
+    /* Speaker Grille on Left */
+    .watch-speaker {
+      position: absolute;
+      left: 3px;
+      top: 75px;
+      width: 3px;
+      height: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .watch-speaker span {
+      display: block;
+      width: 3px;
+      height: 3px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    /* Strap simulation lugs */
+    .strap-top, .strap-bottom {
+      width: 120px;
+      height: 18px;
+      background: #18191d;
+      margin: 0 auto;
+      border-radius: 6px;
+      opacity: 0.7;
+    }
+    .strap-top { margin-bottom: -6px; }
+    .strap-bottom { margin-top: -6px; }
+
+    /* Active Watch Screen - Compact 210 x 270 px */
+    .watch-screen {
+      width: 210px;
+      height: 270px;
+      background: #000000;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 11px 10px;
+      box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.95);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Alert Border Highlight (Monochrome White pulse for 1-2 seconds) */
+    .watch-screen.alert-highlight {
+      border-color: #ffffff;
+      box-shadow: 
+        inset 0 0 20px rgba(255, 255, 255, 0.35),
+        0 0 16px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Curved Glass Glare Sheen */
+    .screen-glare {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* 1. Time & Date Section */
+    .watch-home-clock {
+      text-align: center;
+      padding-bottom: 7px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 8px;
+    }
+    .watch-time {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .watch-date {
+      font-size: 9.5px;
+      color: #a3a3a3;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 2. Recent Alerts Section */
+    .recent-alerts-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      overflow: hidden;
+    }
+    .recent-alerts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1px;
+    }
+    .recent-alerts-title {
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .recent-alerts-title::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #ffffff;
+    }
+    .recent-alerts-badge {
+      font-size: 7.5px;
+      color: #737373;
+      font-weight: 600;
+    }
+    .recent-alert-card {
+      background: #0f0f0f;
+      border: 1px solid #262626;
+      border-radius: 12px;
+      padding: 8px 9px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .recent-alert-card.new-alert {
+      background: #1a1a1a;
+      border-color: #ffffff;
+    }
+    .recent-alert-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.35;
+      word-break: break-word;
+      max-height: 85px;
+      overflow-y: auto;
+    }
+    .recent-alert-time {
+      font-size: 8px;
+      color: #737373;
+      font-variant-numeric: tabular-nums;
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .recent-alert-status {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .recent-alert-status.disconnected {
+      color: #737373;
+    }
+    .alert-card.new-alert {
+      background: #1a1a1a;
+      border-color: #ffffff;
+    }
+    .alert-badge {
+      font-size: 8px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .alert-badge::before {
+      content: "!";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      color: #000;
+      border-radius: 50%;
+      font-size: 7px;
+      font-weight: 900;
+    }
+    .alert-content {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.35;
+      word-break: break-word;
+      max-height: 90px;
+      overflow-y: auto;
+    }
+    .alert-content::-webkit-scrollbar {
+      width: 2px;
+    }
+    .alert-content::-webkit-scrollbar-thumb {
+      background: #525252;
+    }
+
+    /* Footer / Server Connectivity Status */
+    .watch-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #262626;
+      padding-top: 3px;
+      font-size: 8.5px;
+    }
+    .connection-status {
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .connection-status.disconnected {
+      color: #737373;
+    }
+    .last-sync {
+      color: #737373;
+      font-size: 7.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Server URL Config Bar (Below Watch for multi-laptop setups) */
+    .config-card {
+      margin-top: 18px;
+      width: 290px;
+      background: #11141a;
+      border: 1px solid #1f242f;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11px;
+    }
+    .config-title {
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .config-input-group {
+      display: flex;
+      gap: 6px;
+    }
+    .config-input {
+      flex: 1;
+      background: #0b0c10;
+      border: 1px solid #2d3545;
+      color: #93c5fd;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-family: monospace;
+      outline: none;
+    }
+    .config-btn {
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #f3f4f6;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    .config-hint {
+      margin-top: 5px;
+      font-size: 9.5px;
+      color: #6b7280;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="prototype-bar">
+    <div class="prototype-title">Campus WiFi Watch System</div>
+    <div class="prototype-subtitle">Student / Staff Wristband Unit Prototype</div>
+  </div>
+
+  <div class="strap-top"></div>
+
+  <!-- Physical Watch Housing -->
+  <div class="watch-case" id="watchCase">
+    <div class="watch-crown"></div>
+    <div class="watch-side-btn"></div>
+    <div class="watch-speaker" title="Speaker grille">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- Active Display Area (210 x 270 px) -->
+    <div class="watch-screen" id="watchScreen">
+      <div class="screen-glare"></div>
+
+      <!-- 1. TIME & DATE -->
+      <div class="watch-home-clock">
+        <div class="watch-time" id="watchTime">--:-- --</div>
+        <div class="watch-date" id="watchDate">-- --- ----</div>
+      </div>
+
+      <!-- 2. RECENT ALERTS -->
+      <div class="recent-alerts-section">
+        <div class="recent-alerts-header">
+          <span class="recent-alerts-title">RECENT ALERTS</span>
+          <span class="recent-alerts-badge" id="recentAlertBadge">Live</span>
+        </div>
+
+        <div class="recent-alert-card" id="alertCard">
+          <div class="recent-alert-text" id="alertContent">Waiting for recent alerts...</div>
+          <div class="recent-alert-time">
+            <span id="alertTime">Just now</span>
+            <span class="recent-alert-status" id="connectionStatus">Connected</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="strap-bottom"></div>
+
+  <!-- Server Network Settings -->
+  <div class="config-card">
+    <div class="config-title">
+      <span>Wi-Fi Server Target</span>
+      <span id="configPingState" style="font-size: 9px; color: #10b981;">● Active</span>
+    </div>
+    <div class="config-input-group">
+      <!-- Clearly marked server URL input for two-laptop setups -->
+      <input type="text" id="serverUrlInput" class="config-input" value="http://127.0.0.1:8000" placeholder="http://192.168.x.x:8000">
+      <button class="config-btn" id="updateUrlBtn" type="button">Set</button>
+    </div>
+    <div class="config-hint">
+      <strong>For Two-Laptop Testing:</strong> Replace <code>127.0.0.1</code> with the server laptop's Wi-Fi IP (e.g. <code>http://192.168.1.105:8000</code>).
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // Configuration & Networking URL
+    // -------------------------------------------------------------
+    // Default server URL. For two laptops, replace with:
+    // const SERVER_URL = "http://SERVER-LAPTOP-IP:8000";
+    let SERVER_URL = window.location.port === "8000" ? window.location.origin : "http://127.0.0.1:8000";
+
+    const serverUrlInput = document.getElementById("serverUrlInput");
+    const updateUrlBtn = document.getElementById("updateUrlBtn");
+
+    if (window.location.protocol.startsWith("http")) {
+      if (window.location.port === "3000") {
+        SERVER_URL = window.location.origin;
+        serverUrlInput.value = SERVER_URL;
+      }
+    }
+
+    updateUrlBtn.addEventListener("click", () => {
+      let val = serverUrlInput.value.trim();
+      if (!val) return;
+      if (!val.startsWith("http://") && !val.startsWith("https://")) {
+        val = "http://" + val;
+      }
+      SERVER_URL = val;
+      serverUrlInput.value = SERVER_URL;
+      console.log("Updated SERVER_URL:", SERVER_URL);
+    });
+
+    // -------------------------------------------------------------
+    // Live Clock & Date Display
+    // -------------------------------------------------------------
+    function updateClock() {
+      const now = new Date();
+      // Time formatted like 10:45 AM
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const timeStr = `${hours}:${minutes} ${ampm}`;
+      document.getElementById('watchTime').textContent = timeStr;
+
+      // Date formatted like 04 Oct 2026
+      const day = String(now.getDate()).padStart(2, '0');
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthStr = months[now.getMonth()];
+      const year = now.getFullYear();
+      document.getElementById('watchDate').textContent = `${day} ${monthStr} ${year}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // -------------------------------------------------------------
+    // Web Audio API Alert Chime (Section 8)
+    // OscillatorNode + GainNode, short and pleasant
+    // -------------------------------------------------------------
+    let audioCtx = null;
+
+    function playAlertSound() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        if (!audioCtx) {
+          audioCtx = new AudioContextClass();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+
+        // Tone 1: 880 Hz (A5), duration 0.12s
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, now);
+        gain1.gain.setValueAtTime(0.18, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.12);
+
+        // Tone 2: 1320 Hz (E6), duration 0.22s, slight delay
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(1320, now + 0.08);
+        gain2.gain.setValueAtTime(0.2, now + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.32);
+      } catch (err) {
+        console.warn("AudioContext playback prevented or not supported:", err);
+      }
+    }
+
+    // Enable audio context on any user click on the document
+    document.addEventListener("click", () => {
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }, { once: true });
+
+    // -------------------------------------------------------------
+    // Alert Notification Trigger
+    // 1. Update text
+    // 2. Play sound
+    // 3. Trigger vibration (navigator.vibrate)
+    // 4. Highlight watch border temporarily (1-2s)
+    // -------------------------------------------------------------
+    const watchCase = document.getElementById("watchCase");
+    const watchScreen = document.getElementById("watchScreen");
+    const alertCard = document.getElementById("alertCard");
+    const alertContent = document.getElementById("alertContent");
+
+    let highlightTimeout = null;
+
+    function triggerNewAlertNotification(messageText) {
+      // 1. Update text
+      alertContent.textContent = messageText;
+
+      // 2. Play alert sound
+      playAlertSound();
+
+      // 3. Vibration if supported
+      if ("vibrate" in navigator) {
+        try {
+          navigator.vibrate([200, 100, 200]);
+        } catch (e) {
+          // ignore vibration errors
+        }
+      }
+      // Visual vibration shake on the watch case
+      watchCase.classList.add("vibrating");
+      setTimeout(() => {
+        watchCase.classList.remove("vibrating");
+      }, 500);
+
+      // 4. Temporarily highlight watch border & card
+      watchScreen.classList.add("alert-highlight");
+      alertCard.classList.add("new-alert");
+
+      if (highlightTimeout) clearTimeout(highlightTimeout);
+      // 5. Return to normal appearance after ~1.5 - 2 seconds
+      highlightTimeout = setTimeout(() => {
+        watchScreen.classList.remove("alert-highlight");
+        alertCard.classList.remove("new-alert");
+      }, 1800);
+    }
+
+    // -------------------------------------------------------------
+    // Polling Loop: GET /admin-message every ~1 second
+    // -------------------------------------------------------------
+    const connectionStatus = document.getElementById("connectionStatus");
+    const wifiDot = document.getElementById("wifiDot");
+    const wifiText = document.getElementById("wifiText");
+    const lastSync = document.getElementById("lastSync");
+    const configPingState = document.getElementById("configPingState");
+
+    let lastKnownMessage = null;
+    let isInitialLoad = true;
+
+    async function pollAdminMessage() {
+      try {
+        const response = await fetch(`${SERVER_URL}/admin-message`, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+          // Cache busting to ensure fresh polling
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+        const incomingMessage = data.message || "";
+
+        // Status update: Connected
+        if (connectionStatus) {
+          connectionStatus.textContent = "Connected";
+          connectionStatus.className = "recent-alert-status";
+        }
+        if (wifiDot) wifiDot.className = "wifi-dot";
+        if (wifiText) wifiText.textContent = "● Wi-Fi Connected";
+        if (configPingState) {
+          configPingState.textContent = "● Active";
+          configPingState.style.color = "#10b981";
+        }
+
+        const now = new Date();
+        const alertTimeEl = document.getElementById("alertTime");
+        if (alertTimeEl) {
+          alertTimeEl.textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+        if (lastSync) {
+          lastSync.textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }
+
+        // Check if message is new
+        if (incomingMessage !== lastKnownMessage) {
+          lastKnownMessage = incomingMessage;
+
+          if (isInitialLoad) {
+            // First load: display message directly
+            alertContent.textContent = incomingMessage || "No active alerts";
+            isInitialLoad = false;
+          } else {
+            // New alert arrived: trigger sound, vibration, highlight
+            triggerNewAlertNotification(incomingMessage);
+          }
+        }
+      } catch (err) {
+        // Status update: Server disconnected
+        if (connectionStatus) {
+          connectionStatus.textContent = "Disconnected";
+          connectionStatus.className = "recent-alert-status disconnected";
+        }
+        if (wifiDot) wifiDot.className = "wifi-dot disconnected";
+        if (wifiText) wifiText.className = "wifi-text disconnected";
+        if (configPingState) {
+          configPingState.textContent = "○ Disconnected";
+          configPingState.style.color = "#ef4444";
+        }
+      }
+    }
+
+    // Start polling immediately and every 1000ms
+    pollAdminMessage();
+    setInterval(pollAdminMessage, 1000);
+  </script>
+</body>
+</html>
